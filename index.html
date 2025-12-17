@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>엔드밀 규격 검색 <span style="font-size:13px;color:rgba(168,182,214,.9);font-weight:600;">v27-mobile</span></title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#0f1b33;
+      --card2:#0c162b;
+      --line:#233556;
+      --text:#e6eefc;
+      --muted:#a8b6d6;
+      --accent:#3b82f6;
+      --accent2:#2563eb;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", Arial, "Helvetica Neue", sans-serif;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background: radial-gradient(1200px 600px at 20% 10%, #12244a 0%, transparent 60%),
+                  radial-gradient(1000px 700px at 80% 20%, #0f2a4a 0%, transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      font-family:var(--sans);
+    }
+    .wrap{ max-width:1400px; margin:24px auto 36px; padding:0 18px; }
+    h1{ margin: 6px 0 18px; font-size:28px; letter-spacing:-.2px; }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.35fr .9fr;
+      gap:18px;
+      align-items:start;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid rgba(255,255,255,.06);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 16px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background: rgba(0,0,0,.12);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .hd .title{ font-weight:700; }
+    .hd .sub{ font-size:12px; color:var(--muted); }
+    .card .bd{ padding:14px 16px 16px; }
+    .row{ display:flex; gap:12px; flex-wrap:wrap; }
+    .col{ display:flex; flex-direction:column; gap:6px; min-width:220px; flex:1; }
+    label{ font-size:12px; color:var(--muted); }
+    input, select, button{
+      height:42px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.15);
+      color:var(--text);
+      outline:none;
+      padding:0 12px;
+      font-size:15px;
+    }
+    input::placeholder{ color:rgba(230,238,252,.45); }
+    select{ padding-right:36px; }
+    .btns{ display:flex; gap:10px; align-items:flex-end; }
+    button{
+      cursor:pointer;
+      border:1px solid rgba(59,130,246,.45);
+      background: linear-gradient(180deg, rgba(59,130,246,.95), rgba(37,99,235,.95));
+      box-shadow: 0 8px 24px rgba(37,99,235,.25);
+      font-weight:700;
+      letter-spacing:-.2px;
+    }
+    button.secondary{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      box-shadow:none;
+      font-weight:600;
+    }
+    .hints{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .chips{
+      margin-top:10px;
+      display:flex; gap:6px; flex-wrap:wrap;
+    }
+    .chip{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+    }
+
+    /* Table */
+    .tableWrap{ margin-top:14px; overflow:auto; border-radius:14px; border:1px solid rgba(255,255,255,.06); }
+    table{ width:100%; border-collapse:collapse; min-width:980px; }
+    thead th{
+      position:sticky; top:0;
+      background: rgba(15,27,51,.98);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      font-size:12px;
+      color:rgba(230,238,252,.9);
+      text-align:center;
+      padding:10px 8px;
+      white-space:nowrap;
+    }
+    tbody td{
+      padding:10px 8px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      text-align:center;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    tbody tr{
+      cursor:pointer;
+      transition: background .12s ease, transform .06s ease;
+    }
+    tbody tr:hover{
+      background: rgba(59,130,246,.08);
+    }
+    tbody tr:active{
+      transform: translateY(1px);
+    }
+    td.code{ font-family:var(--mono); font-weight:700; letter-spacing:.1px; }
+    .status{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .status b{ color:var(--text); }
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:20px;
+      transform:translateX(-50%);
+      background: rgba(15,27,51,.95);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:999px;
+      padding:10px 14px;
+      font-size:13px;
+      color:var(--text);
+      box-shadow: var(--shadow);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(-4px);
+    }
+
+    /* Right panel: reference */
+    .sticky{ position:sticky; top:18px; }
+    .refGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    .refBox{
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      overflow:hidden;
+      background: rgba(0,0,0,.12);
+    }
+    .refBox .rh{
+      padding:10px 12px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      font-weight:700;
+      display:flex; justify-content:space-between; gap:8px;
+      align-items:center;
+    }
+    .refBox .rb{ padding:10px 12px; font-size:13px; color:rgba(230,238,252,.92); }
+    .refTable{ width:100%; border-collapse:collapse; }
+    .refTable td, .refTable th{
+      border-bottom:1px solid rgba(255,255,255,.06);
+      padding:7px 8px;
+      font-size:12px;
+      vertical-align:top;
+    }
+    .refTable th{ color:var(--muted); font-weight:600; text-align:left; width:42%; }
+    .small{ color:var(--muted); font-size:12px; line-height:1.45; }
+
+    /* Mobile */
+    @media (max-width: 980px){
+      .grid{ grid-template-columns:1fr; }
+      table{ min-width: 920px; }
+      .sticky{ position:relative; top:auto; }
+    }
+  
+    .refTable tr.hl th, .refTable tr.hl td{
+      background: rgba(59,130,246,.12);
+    }
+    .refTable tr.hl th{
+      color: var(--text);
+    }
+    .refTable tr[data-ref]{
+      cursor: default;
+    }
+    .tooltip{
+      position:fixed;
+      z-index:9999;
+      background: rgba(15,27,51,.97);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:12px;
+      color:var(--text);
+      max-width:320px;
+      line-height:1.35;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .12s ease, transform .12s ease;
+      transform: translateY(4px);
+    }
+    .tooltip.show{ opacity:1; transform: translateY(0); }
+
+  /* v11 patch: select option visibility */
+    select{
+      color:#e6eefc;
+      background: rgba(15,27,51,.90);
+    }
+    select option{
+      color:#0f172a;
+      background:#e5e7eb;
+    }
+    select:focus{
+      outline:none;
+      border-color:#3b82f6;
+      box-shadow: 0 0 0 2px rgba(59,130,246,.35);
+    }
+
+    /* v11 patch: selected summary badge */
+    .summaryBox{
+      margin-top:10px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      border-radius:14px;
+      padding:10px 12px;
+      color:rgba(230,238,252,.92);
+      font-size:13px;
+      line-height:1.4;
+    }
+    .summaryBox b{ color: var(--text); }
+    .hintBadge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      font-size:12px;
+      color:rgba(230,238,252,.92);
+      margin-top:8px;
+    }
+    .hintBadge .dot{
+      width:8px; height:8px; border-radius:50%;
+      background: rgba(59,130,246,.85);
+      box-shadow: 0 0 0 3px rgba(59,130,246,.18);
+    }
+
+    /* v11: tooltype column */
+    th.tooltype, td.tooltype{ min-width:120px; }
+/* v22: Desktop(최대화)에서 설명(td)이 사라지는 현상 방지 */
+.refTable td{ display:table-cell !important; visibility:visible !important; opacity:1 !important; }
+.refTable th{ display:table-cell !important; }
+.refTable{ table-layout:auto !important; }
+.refBox .rb{ overflow:visible !important; }
+/* 일부 구버전 레이아웃(코드만 보이게 하는 list)이 있으면 숨김 */
+.refList, .refCodesOnly, .refRows, .refRowOnlyCode { display:none !important; }
+/* v23: 규격 참고를 '코드 - 설명' 한 줄 형식으로 표시 */
+.refTable tr{
+  display:flex !important;
+  align-items:center;
+  gap:10px;
+}
+.refTable th{
+  width:auto !important;
+  white-space:nowrap;
+}
+.refTable th::after{
+  content:" -";
+  margin-left:6px;
+  color: rgba(230,238,252,.75);
+  font-weight:600;
+}
+.refTable td{
+  flex:1 1 auto;
+}
+/* v24: '코드 - 설명'에서 과도한 공백/잘림 방지 */
+.refTable{ width:100%; }
+.refTable tr{
+  display:grid !important;
+  grid-template-columns: 84px 16px 1fr; /* code | dash | desc */
+  gap:0 !important;
+  align-items:start;
+}
+.refTable th{
+  width:auto !important;
+  padding-right:0 !important;
+}
+.refTable th::after{ content:""; margin:0; } /* remove previous auto dash */
+.refTable td{
+  padding-left:0 !important;
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+.refDash{
+  color: rgba(230,238,252,.75);
+  font-weight:600;
+  padding:8px 0;
+}
+/* v25: 3-Series/5-ToolType 잘림 & 불필요 줄바꿈 방지 */
+.refBox{ overflow:visible !important; }
+.refBox .rb{ overflow:visible !important; }
+.refTable td{
+  white-space:nowrap !important;   /* 한 줄 표시 */
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+/* 화면이 좁을 때만 줄바꿈 허용 */
+@media (max-width: 520px){
+  .refTable td{ white-space:normal !important; }
+}
+/* v25: 코드/대시 컬럼을 더 줄여 설명 영역 확보 */
+.refTable tr{ grid-template-columns: 64px 14px 1fr !important; }
+/* v26: 2/3 항목 설명이 오른쪽 끝에 붙어 잘리는 문제 해결 */
+.refPanel { min-width: 360px; }
+.refBox .rb { width:100% !important; max-width:none !important; }
+.refTable { width:100% !important; }
+.refTable tr{
+  display:grid !important;
+  grid-template-columns: 72px 18px 1fr !important;  /* code | dash | desc */
+  justify-items:start !important;
+}
+.refTable th, .refTable td{
+  text-align:left !important;
+}
+.refTable td{
+  white-space:nowrap !important;
+}
+/* 아주 좁은 화면에서는 줄바꿈 허용 */
+@media (max-width: 520px){
+  .refTable td{ white-space:normal !important; }
+}
+
+/* v26-single-mobile: 모바일(content://)에서도 레이아웃 안정화 */
+.refTable tr{
+  display:grid !important;
+  grid-template-columns: 64px 14px 1fr !important;
+  justify-items:start !important;
+}
+.refTable th, .refTable td{ text-align:left !important; }
+.refTable td{
+  white-space:nowrap !important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width: 100%;
+}
+@media (max-width: 420px){
+  .refTable td{ white-space:normal !important; overflow:visible; text-overflow:clip; }
+}
+
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>엔드밀 규격 검색 <span style="font-size:14px;color:var(--muted);font-weight:600;">(날장 기준 · 긴 날장 우선)</span></h1>
+
+    <div class="grid">
+      <!-- LEFT: Search -->
+      <div class="card">
+        <div class="hd">
+          <div>
+            <div class="title">검색</div>
+            <div class="sub">문장 또는 숫자 입력 가능 · Enter로 바로 검색</div>
+          </div>
+          <div class="sub" id="dataStatus">데이터 로딩 중…</div>
+        </div>
+        <div class="bd">
+          <div class="row">
+            <div class="col" style="flex:1.2; min-width:320px;">
+              <label>검색 문구 또는 스펙 입력</label>
+              <input id="q" placeholder="예: 10*4F*35 / 10 4 35 70 2 / 10파이 4날 날장40 전장75 노즈알R2" />
+            </div>
+
+            <div class="col" style="max-width:360px;">
+              <label>재종(선택)</label>
+              <select id="section">
+                <option value="">전체</option>
+              </select>
+            </div>
+
+            <div class="btns">
+              <button id="btnSearch">검색</button>
+              <button class="secondary" id="btnReset">초기화</button>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <div class="col" style="max-width:260px;">
+              <label>전장 추천 기준</label>
+              <select id="lfMode">
+                <option value="near">가까운 전장 우선</option>
+                <option value="longer">긴 전장 우선(요청 이상)</option>
+              </select>
+            </div>
+            <div class="col" style="max-width:260px;">
+              <label>노즈알 추천 기준</label>
+              <select id="reMode">
+                <option value="near">가까운 R 우선</option>
+                <option value="bigger">큰 R 우선(요청 이상)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="hints">
+            · 마지막 숫자는 기본적으로 <b>날장(APMX)</b>으로 해석합니다.<br/>
+            · 숫자만 입력도 지원합니다: <b>10 4 35</b>(가공경/날수/날장), <b>10 4 35 70</b>(전장 포함), <b>10 4 35 2</b>(노즈알 포함), <b>10 4 35 70 2</b>(전장+노즈알).<br/>
+            · 결과 행을 클릭하면 <b>제품코드가 복사</b>됩니다.
+          </div>
+
+          <div class="chips">
+            <span class="chip">가공경</span>
+            <span class="chip">날수</span>
+            <span class="chip">날장</span>
+            <span class="chip">전장</span>
+            <span class="chip">노즈알</span>
+            <span class="chip">재종</span>
+          </div>
+
+          <div class="hintBadge" id="reHint" style="display:none;"><span class="dot"></span><span>노즈알 미지정: R(코너R) 타입 제외</span></div>
+
+          <div class="status">
+            <div id="resultInfo">결과: -</div>
+            <div class="small">Tip: 가능한 한 <b>3요소(가공경·날수·날장)</b>는 입력해주세요.</div>
+          </div>
+
+          <div class="summaryBox" id="selectedSummary" style="display:none;"></div>
+
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>제품코드</th>
+                  <th>재종</th>
+                  <th>가공경</th>
+                  <th>날수</th>
+                  <th class="tooltype">공구형상</th>
+                  <th>날장</th>
+                  <th>전장</th>
+                  <th>노즈알</th>
+                  <th>재종 설명</th>
+                  <th>날장 차이</th>
+                  <th>전장 차이</th>
+                  <th>노즈알 차이</th>
+                </tr>
+              </thead>
+              <tbody id="tbody">
+                <tr><td colspan="12" style="color:var(--muted);padding:14px 8px;">데이터 로딩 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Reference -->
+      <div class="card sticky">
+        <div class="hd">
+          <div>
+            <div class="title">규격 참고</div>
+            <div class="sub">제품코드 구성/규격 해석 참고(카탈로그 표기 그대로)</div>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="refGrid">
+            <div class="refBox">
+              <div class="rh">1 - Tool Category <span class="small">M milling cutter</span></div>
+              <div class="rb small">제품군/카테고리 표기</div>
+            </div>
+
+            <div class="refBox">
+              <div class="rh">2 - Generation</div>
+              <div class="rb">
+                <table class="refTable">
+                  <tr><th>1</th><td class="refDash">-</td><td>(카탈로그 표기)</td></tr>
+                  <tr><th>2</th><td class="refDash">-</td><td>(카탈로그 표기)</td></tr>
+                </table>
+              </div>
+            </div>
+
+            <div class="refBox">
+              <div class="rh">3 - Series</div>
+              <div class="rb">
+<table class="refTable">
+  <tr><th>00</th><td class="refDash">-</td><td>Universal miling (HRC45)</td></tr>
+  <tr><th>10</th><td class="refDash">-</td><td>High-efficiencty universal milling</td></tr>
+  <tr><th>20</th><td class="refDash">-</td><td>High-perfromance millng</td></tr>
+  <tr><th>30</th><td class="refDash">-</td><td>Steel-specific milling</td></tr>
+  <tr><th>40</th><td class="refDash">-</td><td>Alumunum milling</td></tr>
+  <tr><th>50</th><td class="refDash">-</td><td>S.S milling</td></tr>
+  <tr><th>60</th><td class="refDash">-</td><td>Hard-to-cut materials milling</td></tr>
+  <tr><th>70</th><td class="refDash">-</td><td>Harden steel millng</td></tr>
+  <tr><th>80&90</th><td class="refDash">-</td><td>Others</td></tr>
+</table>
+</div>
+            </div>
+
+            <div class="refBox">
+              <div class="rh">4 - Number of flutes</div>
+              <div class="rb small">2, 3, 4, 5, 6, ……</div>
+            </div>
+
+            <div class="refBox" id="ref-5">
+              <div class="rh">5 - Tool Type <span class="small">코드/의미</span></div>
+              <div class="rb">
+                <table class="refTable">
+                  <tr data-ref="toolType" data-code="E"><th>E</th><td>Flat end</td></tr>
+                  <tr data-ref="toolType" data-code="B"><th>B</th><td>Ball nose</td></tr>
+                  <tr data-ref="toolType" data-code="R"><th>R</th><td>Corner radius</td></tr>
+                  <tr data-ref="toolType" data-code="C"><th>C</th><td>Chamfer</td></tr>
+                  <tr data-ref="toolType" data-code="P"><th>P</th><td>Wavy edge</td></tr>
+                  <tr data-ref="toolType" data-code="W"><th>W</th><td>Form milling</td></tr>
+                  <tr data-ref="toolType" data-code="T"><th>T</th><td>Tapered</td></tr>
+                  <tr data-ref="toolType" data-code="H"><th>H</th><td>High-feed</td></tr>
+                </table>
+              </div>
+            </div>
+
+            <div class="refBox" id="ref-6">
+              <div class="rh">6 - Length Standard <span class="small">코드/의미</span></div>
+              <div class="rb">
+                <table class="refTable">
+                  <tr data-ref="lengthStd" data-code="S"><th>S</th><td>Standard</td></tr>
+                  <tr data-ref="lengthStd" data-code="L"><th>L</th><td>Long</td></tr>
+                  <tr data-ref="lengthStd" data-code="X"><th>X</th><td>Extra-long</td></tr>
+                  <tr data-ref="lengthStd" data-code="A"><th>A</th><td>Ultra-long</td></tr>
+                  <tr data-ref="lengthStd" data-code="SN"><th>SN</th><td>Shortened flute</td></tr>
+                  <tr data-ref="lengthStd" data-code="SP"><th>SP</th><td>Extended flute</td></tr>
+                  <tr data-ref="lengthStd" data-code="LP"><th>LP</th><td>Long &amp; extended flute</td></tr>
+                </table>
+              </div>
+            </div>
+
+            <div class="refBox" id="ref-7">
+              <div class="rh">7 - Tool Diameter</div>
+              <div class="rb small">
+                <b>060</b> = 6.0mm<br>
+                <b>200</b> = 20.0mm
+              </div>
+            </div>
+
+            <div class="refBox" id="ref-8">
+              <div class="rh">8 - Corner Radius</div>
+              <div class="rb small">
+                <b>002</b> = 0.2mm
+              </div>
+            </div>
+
+            <div class="refBox" id="ref-9">
+              <div class="rh">9 - Structure Type <span class="small">코드/의미</span></div>
+              <div class="rb">
+                <table class="refTable">
+                  <tr data-ref="structure" data-code="N"><th>N</th><td>Straight neck</td></tr>
+                  <tr data-ref="structure" data-code="C"><th>C</th><td>Tapered neck</td></tr>
+                  <tr data-ref="structure" data-code="W"><th>W</th><td>Side lock shank</td></tr>
+                  <tr data-ref="structure" data-code="P"><th>P</th><td>Special shank dia.</td></tr>
+                  <tr data-ref="structure" data-code="Default"><th>Default</th><td>Standard necking</td></tr>
+                </table>
+              </div>
+            </div>
+
+            <div class="small">
+              데이터 업데이트(1안): 엑셀 → data.json 생성 후, 이 index.html과 같은 폴더에 <b>data.json</b>을 덮어쓰기 하면 됩니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">복사되었습니다.</div>
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    const EMBEDDED_DATA = [{"PRODUCT_CODE": "M150-4ES-010", "SECTION": "M150", "DC": 1.0, "FLUTES": 4, "APMX": 3.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-010002", "SECTION": "M150", "DC": 1.0, "FLUTES": 4, "APMX": 3.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4ES-015", "SECTION": "M150", "DC": 1.5, "FLUTES": 4, "APMX": 4.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-015002", "SECTION": "M150", "DC": 1.5, "FLUTES": 4, "APMX": 4.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4ES-020", "SECTION": "M150", "DC": 2.0, "FLUTES": 4, "APMX": 6.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-020002", "SECTION": "M150", "DC": 2.0, "FLUTES": 4, "APMX": 6.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4RS-020005", "SECTION": "M150", "DC": 2.0, "FLUTES": 4, "APMX": 6.0, "LF": 50, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4ES-025", "SECTION": "M150", "DC": 2.5, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-025005", "SECTION": "M150", "DC": 2.5, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4ES-030", "SECTION": "M150", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-030002", "SECTION": "M150", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4RS-030005", "SECTION": "M150", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4EL-030", "SECTION": "M150", "DC": 3.0, "FLUTES": 4, "APMX": 15.0, "LF": 60, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-040", "SECTION": "M150", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-040002", "SECTION": "M150", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4RS-040005", "SECTION": "M150", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4RS-040010", "SECTION": "M150", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R1", "PAGE": 25, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M150-4EL-040", "SECTION": "M150", "DC": 4.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-050", "SECTION": "M150", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-060", "SECTION": "M150", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-060002", "SECTION": "M150", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4RS-060005", "SECTION": "M150", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4RS-060010", "SECTION": "M150", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R1", "PAGE": 25, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M150-4EL-060", "SECTION": "M150", "DC": 6.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-080", "SECTION": "M150", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-080002", "SECTION": "M150", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4RS-080005", "SECTION": "M150", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4RS-080010", "SECTION": "M150", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1", "PAGE": 25, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M150-4EL-080", "SECTION": "M150", "DC": 8.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-100", "SECTION": "M150", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-100005", "SECTION": "M150", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4RS-100010", "SECTION": "M150", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1", "PAGE": 25, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M150-4RS-100020", "SECTION": "M150", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2", "PAGE": 25, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M150-4EL-100", "SECTION": "M150", "DC": 10.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-120", "SECTION": "M150", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-120005", "SECTION": "M150", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4RS-120010", "SECTION": "M150", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1", "PAGE": 25, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M150-4RS-120020", "SECTION": "M150", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2", "PAGE": 25, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M150-4EL-120", "SECTION": "M150", "DC": 12.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-160", "SECTION": "M150", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-200", "SECTION": "M150", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-2BS-020", "SECTION": "M170", "DC": 2.0, "FLUTES": 2, "APMX": 4.0, "LF": 50, "RE": "R1", "PAGE": 31, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M170-2BS-030", "SECTION": "M170", "DC": 3.0, "FLUTES": 2, "APMX": 6.0, "LF": 50, "RE": "R1.5", "PAGE": 31, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M170-2BS-040", "SECTION": "M170", "DC": 4.0, "FLUTES": 2, "APMX": 8.0, "LF": 50, "RE": "R2", "PAGE": 31, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M170-2BS-060", "SECTION": "M170", "DC": 6.0, "FLUTES": 2, "APMX": 12.0, "LF": 50, "RE": "R3", "PAGE": 31, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M170-2BS-080", "SECTION": "M170", "DC": 8.0, "FLUTES": 2, "APMX": 16.0, "LF": 60, "RE": "R4", "PAGE": 31, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M170-2BS-100", "SECTION": "M170", "DC": 10.0, "FLUTES": 2, "APMX": 18.0, "LF": 75, "RE": "R5", "PAGE": 31, "RE_VAL": 5.0}, {"PRODUCT_CODE": "M170-2BS-120", "SECTION": "M170", "DC": 12.0, "FLUTES": 2, "APMX": 22.0, "LF": 75, "RE": "R6", "PAGE": 31, "RE_VAL": 6.0}, {"PRODUCT_CODE": "M170-2BS-160", "SECTION": "M170", "DC": 16.0, "FLUTES": 2, "APMX": 30.0, "LF": 100, "RE": "R8", "PAGE": 31, "RE_VAL": 8.0}, {"PRODUCT_CODE": "M170-4ES-040", "SECTION": "M170", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-4RS-040002", "SECTION": "M170", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.2", "PAGE": 27, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M170-4RS-040005", "SECTION": "M170", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.5", "PAGE": 27, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M170-4ES-060", "SECTION": "M170", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-4RS-060002", "SECTION": "M170", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.2", "PAGE": 27, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M170-4RS-060005", "SECTION": "M170", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.5", "PAGE": 27, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M170-4RS-060010", "SECTION": "M170", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R1", "PAGE": 27, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M170-4ES-080", "SECTION": "M170", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-4RS-080002", "SECTION": "M170", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.2", "PAGE": 27, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M170-4RS-080005", "SECTION": "M170", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.5", "PAGE": 27, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M170-4RS-080010", "SECTION": "M170", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1", "PAGE": 27, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M170-4ES-100", "SECTION": "M170", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-4RS-100002", "SECTION": "M170", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.2", "PAGE": 27, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M170-4RS-100005", "SECTION": "M170", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.5", "PAGE": 27, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M170-4RS-100010", "SECTION": "M170", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1", "PAGE": 27, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M170-4RS-100020", "SECTION": "M170", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2", "PAGE": 27, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M170-4ES-120", "SECTION": "M170", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-4RS-120005", "SECTION": "M170", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R0.5", "PAGE": 27, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M170-4RS-120010", "SECTION": "M170", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1", "PAGE": 27, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M170-4RS-120020", "SECTION": "M170", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2", "PAGE": 27, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M170-4RS-120030", "SECTION": "M170", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R3", "PAGE": 27, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M170-4ES-160", "SECTION": "M170", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-5ES-040", "SECTION": "M170", "DC": 4.0, "FLUTES": 5, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-5ES-060", "SECTION": "M170", "DC": 6.0, "FLUTES": 5, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-6ES-080", "SECTION": "M170", "DC": 8.0, "FLUTES": 6, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-6ES-100", "SECTION": "M170", "DC": 10.0, "FLUTES": 6, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-6ES-120", "SECTION": "M170", "DC": 12.0, "FLUTES": 6, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-6ES-160", "SECTION": "M170", "DC": 16.0, "FLUTES": 6, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M180-4WS-060", "SECTION": "M180", "DC": 6.0, "FLUTES": 4, "APMX": 2.5, "LF": 50, "RE": "", "PAGE": 32, "RE_VAL": NaN}, {"PRODUCT_CODE": "M180-4WS-080", "SECTION": "M180", "DC": 8.0, "FLUTES": 4, "APMX": 3.0, "LF": 60, "RE": "", "PAGE": 32, "RE_VAL": NaN}, {"PRODUCT_CODE": "M180-4WS-100", "SECTION": "M180", "DC": 10.0, "FLUTES": 4, "APMX": 4.25, "LF": 75, "RE": "", "PAGE": 32, "RE_VAL": NaN}, {"PRODUCT_CODE": "M180-4WS-120", "SECTION": "M180", "DC": 12.0, "FLUTES": 4, "APMX": 4.5, "LF": 75, "RE": "", "PAGE": 32, "RE_VAL": NaN}, {"PRODUCT_CODE": "M180-4WS-160", "SECTION": "M180", "DC": 16.0, "FLUTES": 4, "APMX": 6.0, "LF": 100, "RE": "", "PAGE": 32, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-010", "SECTION": "M200", "DC": 1.0, "FLUTES": 2, "APMX": 2.0, "LF": 50, "RE": "R0.5", "PAGE": 29, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-2BL-010P", "SECTION": "M200", "DC": 1.0, "FLUTES": 2, "APMX": 2.0, "LF": 75, "RE": "R0.5", "PAGE": 30, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-2ES-010", "SECTION": "M200", "DC": 1.0, "FLUTES": 2, "APMX": 3.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-015", "SECTION": "M200", "DC": 1.5, "FLUTES": 2, "APMX": 3.0, "LF": 50, "RE": "R0.75", "PAGE": 29, "RE_VAL": 0.75}, {"PRODUCT_CODE": "M200-2BL-015P", "SECTION": "M200", "DC": 1.5, "FLUTES": 2, "APMX": 3.0, "LF": 75, "RE": "R0.75", "PAGE": 30, "RE_VAL": 0.75}, {"PRODUCT_CODE": "M200-2ES-015", "SECTION": "M200", "DC": 1.5, "FLUTES": 2, "APMX": 4.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-020", "SECTION": "M200", "DC": 2.0, "FLUTES": 2, "APMX": 4.0, "LF": 50, "RE": "R1", "PAGE": 29, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-2BL-020", "SECTION": "M200", "DC": 2.0, "FLUTES": 2, "APMX": 4.0, "LF": 75, "RE": "R1", "PAGE": 30, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-2ES-020", "SECTION": "M200", "DC": 2.0, "FLUTES": 2, "APMX": 6.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-025", "SECTION": "M200", "DC": 2.5, "FLUTES": 2, "APMX": 5.0, "LF": 50, "RE": "R1.25", "PAGE": 29, "RE_VAL": 1.25}, {"PRODUCT_CODE": "M200-2ES-025", "SECTION": "M200", "DC": 2.5, "FLUTES": 2, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 2, "APMX": 6.0, "LF": 50, "RE": "R1.5", "PAGE": 29, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-2BL-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 2, "APMX": 6.0, "LF": 75, "RE": "R1.5", "PAGE": 30, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-2ES-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 2, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 2, "APMX": 8.0, "LF": 50, "RE": "R2", "PAGE": 29, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-2BL-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 2, "APMX": 8.0, "LF": 75, "RE": "R2", "PAGE": 30, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-2BX-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 2, "APMX": 8.0, "LF": 100, "RE": "R2", "PAGE": 30, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-2ES-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 2, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 2, "APMX": 10.0, "LF": 50, "RE": "R2.5", "PAGE": 29, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M200-2BL-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 2, "APMX": 10.0, "LF": 75, "RE": "R2.5", "PAGE": 30, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M200-2ES-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 2, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 2, "APMX": 12.0, "LF": 50, "RE": "R3", "PAGE": 29, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-2BL-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 2, "APMX": 12.0, "LF": 75, "RE": "R3", "PAGE": 30, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-2BX-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 2, "APMX": 12.0, "LF": 100, "RE": "R3", "PAGE": 30, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-2ES-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 2, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-070", "SECTION": "M200", "DC": 7.0, "FLUTES": 2, "APMX": 14.0, "LF": 60, "RE": "R3.5", "PAGE": 29, "RE_VAL": 3.5}, {"PRODUCT_CODE": "M200-2BX-070", "SECTION": "M200", "DC": 7.0, "FLUTES": 2, "APMX": 14.0, "LF": 100, "RE": "R3.5", "PAGE": 30, "RE_VAL": 3.5}, {"PRODUCT_CODE": "M200-2ES-070", "SECTION": "M200", "DC": 7.0, "FLUTES": 2, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 2, "APMX": 14.0, "LF": 60, "RE": "R4", "PAGE": 29, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-2BL-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 2, "APMX": 14.0, "LF": 75, "RE": "R4", "PAGE": 30, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-2BX-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 2, "APMX": 14.0, "LF": 100, "RE": "R4", "PAGE": 30, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-2ES-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 2, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BL-090", "SECTION": "M200", "DC": 9.0, "FLUTES": 2, "APMX": 16.0, "LF": 100, "RE": "R4.5", "PAGE": 30, "RE_VAL": 4.5}, {"PRODUCT_CODE": "M200-2ES-090", "SECTION": "M200", "DC": 9.0, "FLUTES": 2, "APMX": 23.0, "LF": 75, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 2, "APMX": 18.0, "LF": 75, "RE": "R5", "PAGE": 29, "RE_VAL": 5.0}, {"PRODUCT_CODE": "M200-2BL-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 2, "APMX": 18.0, "LF": 100, "RE": "R5", "PAGE": 30, "RE_VAL": 5.0}, {"PRODUCT_CODE": "M200-2BX-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 2, "APMX": 18.0, "LF": 150, "RE": "R5", "PAGE": 30, "RE_VAL": 5.0}, {"PRODUCT_CODE": "M200-2ES-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 2, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-110", "SECTION": "M200", "DC": 11.0, "FLUTES": 2, "APMX": 20.0, "LF": 75, "RE": "R5.5", "PAGE": 29, "RE_VAL": 5.5}, {"PRODUCT_CODE": "M200-2BL-110", "SECTION": "M200", "DC": 11.0, "FLUTES": 2, "APMX": 20.0, "LF": 100, "RE": "R5.5", "PAGE": 30, "RE_VAL": 5.5}, {"PRODUCT_CODE": "M200-2BS-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 2, "APMX": 22.0, "LF": 75, "RE": "R6", "PAGE": 29, "RE_VAL": 6.0}, {"PRODUCT_CODE": "M200-2BL-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 2, "APMX": 22.0, "LF": 100, "RE": "R6", "PAGE": 30, "RE_VAL": 6.0}, {"PRODUCT_CODE": "M200-2BX-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 2, "APMX": 22.0, "LF": 150, "RE": "R6", "PAGE": 30, "RE_VAL": 6.0}, {"PRODUCT_CODE": "M200-2ES-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 2, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 2, "APMX": 26.0, "LF": 100, "RE": "R7", "PAGE": 29, "RE_VAL": 7.0}, {"PRODUCT_CODE": "M200-2BL-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 2, "APMX": 26.0, "LF": 150, "RE": "R7", "PAGE": 30, "RE_VAL": 7.0}, {"PRODUCT_CODE": "M200-2ES-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 2, "APMX": 34.0, "LF": 100, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 2, "APMX": 30.0, "LF": 100, "RE": "R8", "PAGE": 29, "RE_VAL": 8.0}, {"PRODUCT_CODE": "M200-2BL-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 2, "APMX": 30.0, "LF": 150, "RE": "R8", "PAGE": 30, "RE_VAL": 8.0}, {"PRODUCT_CODE": "M200-2ES-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 2, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 2, "APMX": 34.0, "LF": 100, "RE": "R9", "PAGE": 29, "RE_VAL": 9.0}, {"PRODUCT_CODE": "M200-2BL-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 2, "APMX": 34.0, "LF": 150, "RE": "R9", "PAGE": 30, "RE_VAL": 9.0}, {"PRODUCT_CODE": "M200-2ES-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 2, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 2, "APMX": 38.0, "LF": 100, "RE": "R10", "PAGE": 29, "RE_VAL": 10.0}, {"PRODUCT_CODE": "M200-2BL-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 2, "APMX": 38.0, "LF": 150, "RE": "R10", "PAGE": 30, "RE_VAL": 10.0}, {"PRODUCT_CODE": "M200-2ES-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 2, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-010", "SECTION": "M200", "DC": 1.0, "FLUTES": 4, "APMX": 3.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-010002", "SECTION": "M200", "DC": 1.0, "FLUTES": 4, "APMX": 3.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4ESP-010", "SECTION": "M200", "DC": 1.0, "FLUTES": 4, "APMX": 4.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-015", "SECTION": "M200", "DC": 1.5, "FLUTES": 4, "APMX": 4.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-015002", "SECTION": "M200", "DC": 1.5, "FLUTES": 4, "APMX": 4.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4ES-020", "SECTION": "M200", "DC": 2.0, "FLUTES": 4, "APMX": 6.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-020002", "SECTION": "M200", "DC": 2.0, "FLUTES": 4, "APMX": 6.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4ESP-020", "SECTION": "M200", "DC": 2.0, "FLUTES": 4, "APMX": 10.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-025", "SECTION": "M200", "DC": 2.5, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-030002", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-030003", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.3", "PAGE": 12, "RE_VAL": 0.3}, {"PRODUCT_CODE": "M200-4RS-030005", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-030005", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 75, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4ESP-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 15.0, "LF": 60, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-035", "SECTION": "M200", "DC": 3.5, "FLUTES": 4, "APMX": 11.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-040002", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-040003", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.3", "PAGE": 12, "RE_VAL": 0.3}, {"PRODUCT_CODE": "M200-4RS-040005", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-040010", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R1", "PAGE": 12, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-040002", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 75, "RE": "R0.2", "PAGE": 14, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RL-040005", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 75, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-040010", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 75, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4ESP-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EX-040P", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 20.0, "LF": 75, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EX-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-045", "SECTION": "M200", "DC": 4.5, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-050002", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-050005", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-050010", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "R1", "PAGE": 12, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-050015", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "R1.5", "PAGE": 12, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4ESP-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 18.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ELP-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-055", "SECTION": "M200", "DC": 5.5, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-060002", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-060005", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-060010", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R1", "PAGE": 12, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-060015", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R1.5", "PAGE": 12, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RL-060002", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 75, "RE": "R0.2", "PAGE": 14, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RL-060005", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 75, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-060010", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 75, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-060015", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 75, "RE": "R1.5", "PAGE": 14, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4ESP-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 20.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ELP-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 35.0, "LF": 75, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EX-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 35.0, "LF": 100, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-065", "SECTION": "M200", "DC": 6.5, "FLUTES": 4, "APMX": 16.0, "LF": 60, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-070", "SECTION": "M200", "DC": 7.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-075", "SECTION": "M200", "DC": 7.5, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-080002", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-080003", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.3", "PAGE": 12, "RE_VAL": 0.3}, {"PRODUCT_CODE": "M200-4RS-080005", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-080010", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1", "PAGE": 12, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-080015", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1.5", "PAGE": 12, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RS-080020", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R2", "PAGE": 12, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RL-080005", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 100, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-080010", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 100, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-080015", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 100, "RE": "R1.5", "PAGE": 14, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RL-080020", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 100, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4ESP-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 24.0, "LF": 60, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EX-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 35.0, "LF": 100, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-085", "SECTION": "M200", "DC": 8.5, "FLUTES": 4, "APMX": 23.0, "LF": 75, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-090", "SECTION": "M200", "DC": 9.0, "FLUTES": 4, "APMX": 23.0, "LF": 75, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-095", "SECTION": "M200", "DC": 9.5, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-100002", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-100003", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.3", "PAGE": 12, "RE_VAL": 0.3}, {"PRODUCT_CODE": "M200-4RS-100005", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-100010", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-100015", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1.5", "PAGE": 13, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RS-100020", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RS-100025", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2.5", "PAGE": 13, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M200-4RS-100030", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R3", "PAGE": 13, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4RL-100005", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 100, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-100010", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 100, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-100015", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 100, "RE": "R1.5", "PAGE": 14, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RL-100020", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 100, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4ESP-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ELP-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 50.0, "LF": 100, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-110", "SECTION": "M200", "DC": 11.0, "FLUTES": 4, "APMX": 28.0, "LF": 75, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-120005", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R0.5", "PAGE": 13, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-120010", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-120015", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1.5", "PAGE": 13, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RS-120020", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RS-120025", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2.5", "PAGE": 13, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M200-4RS-120030", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R3", "PAGE": 13, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4RL-120005", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-120010", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-120015", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R1.5", "PAGE": 14, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RL-120020", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RL-120025", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R2.5", "PAGE": 14, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M200-4RL-120030", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R3", "PAGE": 14, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4ESP-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 35.0, "LF": 75, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ELP-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 50.0, "LF": 100, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 34.0, "LF": 100, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-140010", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 34.0, "LF": 100, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-140020", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 34.0, "LF": 100, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RL-140020", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4ESP-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 60.0, "LF": 150, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-160005", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "R0.5", "PAGE": 13, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-160010", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-160020", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RS-160030", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "R3", "PAGE": 13, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4RS-160040", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "R4", "PAGE": 13, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-4RL-160005", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-160010", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-160020", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RL-160030", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R3", "PAGE": 14, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4RL-160040", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R4", "PAGE": 14, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-4ESP-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 70.0, "LF": 150, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-180010", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-180020", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RS-180040", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "R4", "PAGE": 13, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-4ESP-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RL-180010", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 45.0, "LF": 150, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-180020", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 45.0, "LF": 150, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4EL-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 70.0, "LF": 150, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-200010", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-200020", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RS-200030", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "R3", "PAGE": 13, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4RS-200040", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "R4", "PAGE": 13, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-4RS-200050", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "R5", "PAGE": 13, "RE_VAL": 5.0}, {"PRODUCT_CODE": "M200-4RL-200010", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 150, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-200020", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 150, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4EL-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 70.0, "LF": 150, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ELP-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 80.0, "LF": 150, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-060", "SECTION": "M205", "DC": 6.0, "FLUTES": 6, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-080", "SECTION": "M205", "DC": 8.0, "FLUTES": 6, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-100", "SECTION": "M205", "DC": 10.0, "FLUTES": 6, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-120", "SECTION": "M205", "DC": 12.0, "FLUTES": 6, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-140", "SECTION": "M205", "DC": 14.0, "FLUTES": 6, "APMX": 34.0, "LF": 100, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-160", "SECTION": "M205", "DC": 16.0, "FLUTES": 6, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-180", "SECTION": "M205", "DC": 18.0, "FLUTES": 6, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-200", "SECTION": "M205", "DC": 20.0, "FLUTES": 6, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-030", "SECTION": "M210", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-040", "SECTION": "M210", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4RS-040002", "SECTION": "M210", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.2", "PAGE": 22, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M210-4RS-040005", "SECTION": "M210", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.5", "PAGE": 22, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M210-4RS-040010", "SECTION": "M210", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R1", "PAGE": 22, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M210-4CS-050", "SECTION": "M210", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-060", "SECTION": "M210", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4RS-060002", "SECTION": "M210", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.2", "PAGE": 22, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M210-4RS-060005", "SECTION": "M210", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.5", "PAGE": 22, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M210-4RS-060010", "SECTION": "M210", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R1", "PAGE": 22, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M210-4CS-080", "SECTION": "M210", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4RS-080005", "SECTION": "M210", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.5", "PAGE": 22, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M210-4RS-080010", "SECTION": "M210", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1", "PAGE": 22, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M210-4RS-080015", "SECTION": "M210", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1.5", "PAGE": 22, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M210-4RS-080020", "SECTION": "M210", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R2", "PAGE": 22, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M210-4CS-100", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4RS-100005", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.5", "PAGE": 22, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M210-4RS-100010", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1", "PAGE": 22, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M210-4RS-100015", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1.5", "PAGE": 22, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M210-4RS-100020", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2", "PAGE": 22, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M210-4RS-100025", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2.5", "PAGE": 22, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M210-4CS-120", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4RS-120005", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R0.5", "PAGE": 22, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M210-4RS-120010", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1", "PAGE": 22, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M210-4RS-120015", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1.5", "PAGE": 22, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M210-4RS-120020", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2", "PAGE": 22, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M210-4RS-120025", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2.5", "PAGE": 22, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M210-4RS-120030", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R3", "PAGE": 22, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M210-4CS-140", "SECTION": "M210", "DC": 14.0, "FLUTES": 4, "APMX": 34.0, "LF": 100, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-160", "SECTION": "M210", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-180", "SECTION": "M210", "DC": 18.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-200", "SECTION": "M210", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-4PS-060", "SECTION": "M216", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-4PS-080", "SECTION": "M216", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-4PS-100", "SECTION": "M216", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-4PS-120", "SECTION": "M216", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-5PS-160", "SECTION": "M216", "DC": 16.0, "FLUTES": 5, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-6PS-200", "SECTION": "M216", "DC": 20.0, "FLUTES": 6, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-030", "SECTION": "M245", "DC": 3.0, "FLUTES": 2, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-040", "SECTION": "M245", "DC": 4.0, "FLUTES": 2, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-050", "SECTION": "M245", "DC": 5.0, "FLUTES": 2, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-060", "SECTION": "M245", "DC": 6.0, "FLUTES": 2, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-080", "SECTION": "M245", "DC": 8.0, "FLUTES": 2, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-100", "SECTION": "M245", "DC": 10.0, "FLUTES": 2, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-120", "SECTION": "M245", "DC": 12.0, "FLUTES": 2, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-160", "SECTION": "M245", "DC": 16.0, "FLUTES": 2, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-200", "SECTION": "M245", "DC": 20.0, "FLUTES": 2, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-010", "SECTION": "M245", "DC": 1.0, "FLUTES": 3, "APMX": 3.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-015", "SECTION": "M245", "DC": 1.5, "FLUTES": 3, "APMX": 4.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-020", "SECTION": "M245", "DC": 2.0, "FLUTES": 3, "APMX": 6.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-025", "SECTION": "M245", "DC": 2.5, "FLUTES": 3, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-030", "SECTION": "M245", "DC": 3.0, "FLUTES": 3, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-040", "SECTION": "M245", "DC": 4.0, "FLUTES": 3, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-040", "SECTION": "M245", "DC": 4.0, "FLUTES": 3, "APMX": 16.0, "LF": 60, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-050", "SECTION": "M245", "DC": 5.0, "FLUTES": 3, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-060", "SECTION": "M245", "DC": 6.0, "FLUTES": 3, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-060", "SECTION": "M245", "DC": 6.0, "FLUTES": 3, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-080", "SECTION": "M245", "DC": 8.0, "FLUTES": 3, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-080", "SECTION": "M245", "DC": 8.0, "FLUTES": 3, "APMX": 32.0, "LF": 75, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-100", "SECTION": "M245", "DC": 10.0, "FLUTES": 3, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-100", "SECTION": "M245", "DC": 10.0, "FLUTES": 3, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-120", "SECTION": "M245", "DC": 12.0, "FLUTES": 3, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-120", "SECTION": "M245", "DC": 12.0, "FLUTES": 3, "APMX": 50.0, "LF": 100, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-160", "SECTION": "M245", "DC": 16.0, "FLUTES": 3, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-160", "SECTION": "M245", "DC": 16.0, "FLUTES": 3, "APMX": 60.0, "LF": 150, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-180", "SECTION": "M245", "DC": 18.0, "FLUTES": 3, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-200", "SECTION": "M245", "DC": 20.0, "FLUTES": 3, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-200", "SECTION": "M245", "DC": 20.0, "FLUTES": 3, "APMX": 70.0, "LF": 150, "RE": "", "PAGE": 19, "RE_VAL": NaN}];
+// --- Grade descriptions (재종 설명)
+    const GRADE_DESC = {
+      "M200": "범용 HRC45",
+      "M210": "범용 HRC55",
+      "M170": "고경도 HRC65",
+      "M150": "서스용",
+      "M245": "알루미늄용",
+      "M216": "라핑",
+      "M180": "챔퍼",
+      "M205": "범용 6날 HRC45"
+    };
+
+    // Data will be loaded from data.json (A안)
+    let DATA = [];
+
+    const EMBEDDED_DATA = [{"PRODUCT_CODE": "M150-4ES-010", "SECTION": "M150", "DC": 1.0, "FLUTES": 4, "APMX": 3.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-010002", "SECTION": "M150", "DC": 1.0, "FLUTES": 4, "APMX": 3.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4ES-015", "SECTION": "M150", "DC": 1.5, "FLUTES": 4, "APMX": 4.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-015002", "SECTION": "M150", "DC": 1.5, "FLUTES": 4, "APMX": 4.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4ES-020", "SECTION": "M150", "DC": 2.0, "FLUTES": 4, "APMX": 6.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-020002", "SECTION": "M150", "DC": 2.0, "FLUTES": 4, "APMX": 6.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4RS-020005", "SECTION": "M150", "DC": 2.0, "FLUTES": 4, "APMX": 6.0, "LF": 50, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4ES-025", "SECTION": "M150", "DC": 2.5, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-025005", "SECTION": "M150", "DC": 2.5, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4ES-030", "SECTION": "M150", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-030002", "SECTION": "M150", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4RS-030005", "SECTION": "M150", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4EL-030", "SECTION": "M150", "DC": 3.0, "FLUTES": 4, "APMX": 15.0, "LF": 60, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-040", "SECTION": "M150", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-040002", "SECTION": "M150", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4RS-040005", "SECTION": "M150", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4RS-040010", "SECTION": "M150", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R1", "PAGE": 25, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M150-4EL-040", "SECTION": "M150", "DC": 4.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-050", "SECTION": "M150", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-060", "SECTION": "M150", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-060002", "SECTION": "M150", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4RS-060005", "SECTION": "M150", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4RS-060010", "SECTION": "M150", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R1", "PAGE": 25, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M150-4EL-060", "SECTION": "M150", "DC": 6.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-080", "SECTION": "M150", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-080002", "SECTION": "M150", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.2", "PAGE": 25, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M150-4RS-080005", "SECTION": "M150", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4RS-080010", "SECTION": "M150", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1", "PAGE": 25, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M150-4EL-080", "SECTION": "M150", "DC": 8.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-100", "SECTION": "M150", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-100005", "SECTION": "M150", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4RS-100010", "SECTION": "M150", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1", "PAGE": 25, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M150-4RS-100020", "SECTION": "M150", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2", "PAGE": 25, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M150-4EL-100", "SECTION": "M150", "DC": 10.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-120", "SECTION": "M150", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4RS-120005", "SECTION": "M150", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R0.5", "PAGE": 25, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M150-4RS-120010", "SECTION": "M150", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1", "PAGE": 25, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M150-4RS-120020", "SECTION": "M150", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2", "PAGE": 25, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M150-4EL-120", "SECTION": "M150", "DC": 12.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-160", "SECTION": "M150", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M150-4ES-200", "SECTION": "M150", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 24, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-2BS-020", "SECTION": "M170", "DC": 2.0, "FLUTES": 2, "APMX": 4.0, "LF": 50, "RE": "R1", "PAGE": 31, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M170-2BS-030", "SECTION": "M170", "DC": 3.0, "FLUTES": 2, "APMX": 6.0, "LF": 50, "RE": "R1.5", "PAGE": 31, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M170-2BS-040", "SECTION": "M170", "DC": 4.0, "FLUTES": 2, "APMX": 8.0, "LF": 50, "RE": "R2", "PAGE": 31, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M170-2BS-060", "SECTION": "M170", "DC": 6.0, "FLUTES": 2, "APMX": 12.0, "LF": 50, "RE": "R3", "PAGE": 31, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M170-2BS-080", "SECTION": "M170", "DC": 8.0, "FLUTES": 2, "APMX": 16.0, "LF": 60, "RE": "R4", "PAGE": 31, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M170-2BS-100", "SECTION": "M170", "DC": 10.0, "FLUTES": 2, "APMX": 18.0, "LF": 75, "RE": "R5", "PAGE": 31, "RE_VAL": 5.0}, {"PRODUCT_CODE": "M170-2BS-120", "SECTION": "M170", "DC": 12.0, "FLUTES": 2, "APMX": 22.0, "LF": 75, "RE": "R6", "PAGE": 31, "RE_VAL": 6.0}, {"PRODUCT_CODE": "M170-2BS-160", "SECTION": "M170", "DC": 16.0, "FLUTES": 2, "APMX": 30.0, "LF": 100, "RE": "R8", "PAGE": 31, "RE_VAL": 8.0}, {"PRODUCT_CODE": "M170-4ES-040", "SECTION": "M170", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-4RS-040002", "SECTION": "M170", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.2", "PAGE": 27, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M170-4RS-040005", "SECTION": "M170", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.5", "PAGE": 27, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M170-4ES-060", "SECTION": "M170", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-4RS-060002", "SECTION": "M170", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.2", "PAGE": 27, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M170-4RS-060005", "SECTION": "M170", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.5", "PAGE": 27, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M170-4RS-060010", "SECTION": "M170", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R1", "PAGE": 27, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M170-4ES-080", "SECTION": "M170", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-4RS-080002", "SECTION": "M170", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.2", "PAGE": 27, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M170-4RS-080005", "SECTION": "M170", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.5", "PAGE": 27, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M170-4RS-080010", "SECTION": "M170", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1", "PAGE": 27, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M170-4ES-100", "SECTION": "M170", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-4RS-100002", "SECTION": "M170", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.2", "PAGE": 27, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M170-4RS-100005", "SECTION": "M170", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.5", "PAGE": 27, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M170-4RS-100010", "SECTION": "M170", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1", "PAGE": 27, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M170-4RS-100020", "SECTION": "M170", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2", "PAGE": 27, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M170-4ES-120", "SECTION": "M170", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-4RS-120005", "SECTION": "M170", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R0.5", "PAGE": 27, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M170-4RS-120010", "SECTION": "M170", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1", "PAGE": 27, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M170-4RS-120020", "SECTION": "M170", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2", "PAGE": 27, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M170-4RS-120030", "SECTION": "M170", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R3", "PAGE": 27, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M170-4ES-160", "SECTION": "M170", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 26, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-5ES-040", "SECTION": "M170", "DC": 4.0, "FLUTES": 5, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-5ES-060", "SECTION": "M170", "DC": 6.0, "FLUTES": 5, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-6ES-080", "SECTION": "M170", "DC": 8.0, "FLUTES": 6, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-6ES-100", "SECTION": "M170", "DC": 10.0, "FLUTES": 6, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-6ES-120", "SECTION": "M170", "DC": 12.0, "FLUTES": 6, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M170-6ES-160", "SECTION": "M170", "DC": 16.0, "FLUTES": 6, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 28, "RE_VAL": NaN}, {"PRODUCT_CODE": "M180-4WS-060", "SECTION": "M180", "DC": 6.0, "FLUTES": 4, "APMX": 2.5, "LF": 50, "RE": "", "PAGE": 32, "RE_VAL": NaN}, {"PRODUCT_CODE": "M180-4WS-080", "SECTION": "M180", "DC": 8.0, "FLUTES": 4, "APMX": 3.0, "LF": 60, "RE": "", "PAGE": 32, "RE_VAL": NaN}, {"PRODUCT_CODE": "M180-4WS-100", "SECTION": "M180", "DC": 10.0, "FLUTES": 4, "APMX": 4.25, "LF": 75, "RE": "", "PAGE": 32, "RE_VAL": NaN}, {"PRODUCT_CODE": "M180-4WS-120", "SECTION": "M180", "DC": 12.0, "FLUTES": 4, "APMX": 4.5, "LF": 75, "RE": "", "PAGE": 32, "RE_VAL": NaN}, {"PRODUCT_CODE": "M180-4WS-160", "SECTION": "M180", "DC": 16.0, "FLUTES": 4, "APMX": 6.0, "LF": 100, "RE": "", "PAGE": 32, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-010", "SECTION": "M200", "DC": 1.0, "FLUTES": 2, "APMX": 2.0, "LF": 50, "RE": "R0.5", "PAGE": 29, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-2BL-010P", "SECTION": "M200", "DC": 1.0, "FLUTES": 2, "APMX": 2.0, "LF": 75, "RE": "R0.5", "PAGE": 30, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-2ES-010", "SECTION": "M200", "DC": 1.0, "FLUTES": 2, "APMX": 3.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-015", "SECTION": "M200", "DC": 1.5, "FLUTES": 2, "APMX": 3.0, "LF": 50, "RE": "R0.75", "PAGE": 29, "RE_VAL": 0.75}, {"PRODUCT_CODE": "M200-2BL-015P", "SECTION": "M200", "DC": 1.5, "FLUTES": 2, "APMX": 3.0, "LF": 75, "RE": "R0.75", "PAGE": 30, "RE_VAL": 0.75}, {"PRODUCT_CODE": "M200-2ES-015", "SECTION": "M200", "DC": 1.5, "FLUTES": 2, "APMX": 4.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-020", "SECTION": "M200", "DC": 2.0, "FLUTES": 2, "APMX": 4.0, "LF": 50, "RE": "R1", "PAGE": 29, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-2BL-020", "SECTION": "M200", "DC": 2.0, "FLUTES": 2, "APMX": 4.0, "LF": 75, "RE": "R1", "PAGE": 30, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-2ES-020", "SECTION": "M200", "DC": 2.0, "FLUTES": 2, "APMX": 6.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-025", "SECTION": "M200", "DC": 2.5, "FLUTES": 2, "APMX": 5.0, "LF": 50, "RE": "R1.25", "PAGE": 29, "RE_VAL": 1.25}, {"PRODUCT_CODE": "M200-2ES-025", "SECTION": "M200", "DC": 2.5, "FLUTES": 2, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 2, "APMX": 6.0, "LF": 50, "RE": "R1.5", "PAGE": 29, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-2BL-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 2, "APMX": 6.0, "LF": 75, "RE": "R1.5", "PAGE": 30, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-2ES-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 2, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 2, "APMX": 8.0, "LF": 50, "RE": "R2", "PAGE": 29, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-2BL-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 2, "APMX": 8.0, "LF": 75, "RE": "R2", "PAGE": 30, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-2BX-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 2, "APMX": 8.0, "LF": 100, "RE": "R2", "PAGE": 30, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-2ES-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 2, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 2, "APMX": 10.0, "LF": 50, "RE": "R2.5", "PAGE": 29, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M200-2BL-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 2, "APMX": 10.0, "LF": 75, "RE": "R2.5", "PAGE": 30, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M200-2ES-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 2, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 2, "APMX": 12.0, "LF": 50, "RE": "R3", "PAGE": 29, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-2BL-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 2, "APMX": 12.0, "LF": 75, "RE": "R3", "PAGE": 30, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-2BX-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 2, "APMX": 12.0, "LF": 100, "RE": "R3", "PAGE": 30, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-2ES-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 2, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-070", "SECTION": "M200", "DC": 7.0, "FLUTES": 2, "APMX": 14.0, "LF": 60, "RE": "R3.5", "PAGE": 29, "RE_VAL": 3.5}, {"PRODUCT_CODE": "M200-2BX-070", "SECTION": "M200", "DC": 7.0, "FLUTES": 2, "APMX": 14.0, "LF": 100, "RE": "R3.5", "PAGE": 30, "RE_VAL": 3.5}, {"PRODUCT_CODE": "M200-2ES-070", "SECTION": "M200", "DC": 7.0, "FLUTES": 2, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 2, "APMX": 14.0, "LF": 60, "RE": "R4", "PAGE": 29, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-2BL-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 2, "APMX": 14.0, "LF": 75, "RE": "R4", "PAGE": 30, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-2BX-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 2, "APMX": 14.0, "LF": 100, "RE": "R4", "PAGE": 30, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-2ES-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 2, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BL-090", "SECTION": "M200", "DC": 9.0, "FLUTES": 2, "APMX": 16.0, "LF": 100, "RE": "R4.5", "PAGE": 30, "RE_VAL": 4.5}, {"PRODUCT_CODE": "M200-2ES-090", "SECTION": "M200", "DC": 9.0, "FLUTES": 2, "APMX": 23.0, "LF": 75, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 2, "APMX": 18.0, "LF": 75, "RE": "R5", "PAGE": 29, "RE_VAL": 5.0}, {"PRODUCT_CODE": "M200-2BL-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 2, "APMX": 18.0, "LF": 100, "RE": "R5", "PAGE": 30, "RE_VAL": 5.0}, {"PRODUCT_CODE": "M200-2BX-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 2, "APMX": 18.0, "LF": 150, "RE": "R5", "PAGE": 30, "RE_VAL": 5.0}, {"PRODUCT_CODE": "M200-2ES-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 2, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-110", "SECTION": "M200", "DC": 11.0, "FLUTES": 2, "APMX": 20.0, "LF": 75, "RE": "R5.5", "PAGE": 29, "RE_VAL": 5.5}, {"PRODUCT_CODE": "M200-2BL-110", "SECTION": "M200", "DC": 11.0, "FLUTES": 2, "APMX": 20.0, "LF": 100, "RE": "R5.5", "PAGE": 30, "RE_VAL": 5.5}, {"PRODUCT_CODE": "M200-2BS-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 2, "APMX": 22.0, "LF": 75, "RE": "R6", "PAGE": 29, "RE_VAL": 6.0}, {"PRODUCT_CODE": "M200-2BL-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 2, "APMX": 22.0, "LF": 100, "RE": "R6", "PAGE": 30, "RE_VAL": 6.0}, {"PRODUCT_CODE": "M200-2BX-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 2, "APMX": 22.0, "LF": 150, "RE": "R6", "PAGE": 30, "RE_VAL": 6.0}, {"PRODUCT_CODE": "M200-2ES-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 2, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 2, "APMX": 26.0, "LF": 100, "RE": "R7", "PAGE": 29, "RE_VAL": 7.0}, {"PRODUCT_CODE": "M200-2BL-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 2, "APMX": 26.0, "LF": 150, "RE": "R7", "PAGE": 30, "RE_VAL": 7.0}, {"PRODUCT_CODE": "M200-2ES-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 2, "APMX": 34.0, "LF": 100, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 2, "APMX": 30.0, "LF": 100, "RE": "R8", "PAGE": 29, "RE_VAL": 8.0}, {"PRODUCT_CODE": "M200-2BL-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 2, "APMX": 30.0, "LF": 150, "RE": "R8", "PAGE": 30, "RE_VAL": 8.0}, {"PRODUCT_CODE": "M200-2ES-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 2, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 2, "APMX": 34.0, "LF": 100, "RE": "R9", "PAGE": 29, "RE_VAL": 9.0}, {"PRODUCT_CODE": "M200-2BL-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 2, "APMX": 34.0, "LF": 150, "RE": "R9", "PAGE": 30, "RE_VAL": 9.0}, {"PRODUCT_CODE": "M200-2ES-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 2, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-2BS-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 2, "APMX": 38.0, "LF": 100, "RE": "R10", "PAGE": 29, "RE_VAL": 10.0}, {"PRODUCT_CODE": "M200-2BL-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 2, "APMX": 38.0, "LF": 150, "RE": "R10", "PAGE": 30, "RE_VAL": 10.0}, {"PRODUCT_CODE": "M200-2ES-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 2, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 1, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-010", "SECTION": "M200", "DC": 1.0, "FLUTES": 4, "APMX": 3.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-010002", "SECTION": "M200", "DC": 1.0, "FLUTES": 4, "APMX": 3.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4ESP-010", "SECTION": "M200", "DC": 1.0, "FLUTES": 4, "APMX": 4.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-015", "SECTION": "M200", "DC": 1.5, "FLUTES": 4, "APMX": 4.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-015002", "SECTION": "M200", "DC": 1.5, "FLUTES": 4, "APMX": 4.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4ES-020", "SECTION": "M200", "DC": 2.0, "FLUTES": 4, "APMX": 6.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-020002", "SECTION": "M200", "DC": 2.0, "FLUTES": 4, "APMX": 6.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4ESP-020", "SECTION": "M200", "DC": 2.0, "FLUTES": 4, "APMX": 10.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-025", "SECTION": "M200", "DC": 2.5, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-030002", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-030003", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.3", "PAGE": 12, "RE_VAL": 0.3}, {"PRODUCT_CODE": "M200-4RS-030005", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-030005", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 75, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4ESP-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-030", "SECTION": "M200", "DC": 3.0, "FLUTES": 4, "APMX": 15.0, "LF": 60, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-035", "SECTION": "M200", "DC": 3.5, "FLUTES": 4, "APMX": 11.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-040002", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-040003", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.3", "PAGE": 12, "RE_VAL": 0.3}, {"PRODUCT_CODE": "M200-4RS-040005", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-040010", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R1", "PAGE": 12, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-040002", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 75, "RE": "R0.2", "PAGE": 14, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RL-040005", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 75, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-040010", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 75, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4ESP-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EX-040P", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 20.0, "LF": 75, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EX-040", "SECTION": "M200", "DC": 4.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-045", "SECTION": "M200", "DC": 4.5, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-050002", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-050005", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-050010", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "R1", "PAGE": 12, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-050015", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "R1.5", "PAGE": 12, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4ESP-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 18.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ELP-050", "SECTION": "M200", "DC": 5.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-055", "SECTION": "M200", "DC": 5.5, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-060002", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-060005", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-060010", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R1", "PAGE": 12, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-060015", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R1.5", "PAGE": 12, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RL-060002", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 75, "RE": "R0.2", "PAGE": 14, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RL-060005", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 75, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-060010", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 75, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-060015", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 75, "RE": "R1.5", "PAGE": 14, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4ESP-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 20.0, "LF": 50, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ELP-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 35.0, "LF": 75, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EX-060", "SECTION": "M200", "DC": 6.0, "FLUTES": 4, "APMX": 35.0, "LF": 100, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-065", "SECTION": "M200", "DC": 6.5, "FLUTES": 4, "APMX": 16.0, "LF": 60, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-070", "SECTION": "M200", "DC": 7.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-075", "SECTION": "M200", "DC": 7.5, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-080002", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-080003", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.3", "PAGE": 12, "RE_VAL": 0.3}, {"PRODUCT_CODE": "M200-4RS-080005", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-080010", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1", "PAGE": 12, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-080015", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1.5", "PAGE": 12, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RS-080020", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R2", "PAGE": 12, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RL-080005", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 100, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-080010", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 100, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-080015", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 100, "RE": "R1.5", "PAGE": 14, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RL-080020", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 100, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4ESP-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 24.0, "LF": 60, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EX-080", "SECTION": "M200", "DC": 8.0, "FLUTES": 4, "APMX": 35.0, "LF": 100, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-085", "SECTION": "M200", "DC": 8.5, "FLUTES": 4, "APMX": 23.0, "LF": 75, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-090", "SECTION": "M200", "DC": 9.0, "FLUTES": 4, "APMX": 23.0, "LF": 75, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-095", "SECTION": "M200", "DC": 9.5, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-100002", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.2", "PAGE": 12, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M200-4RS-100003", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.3", "PAGE": 12, "RE_VAL": 0.3}, {"PRODUCT_CODE": "M200-4RS-100005", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.5", "PAGE": 12, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-100010", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-100015", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1.5", "PAGE": 13, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RS-100020", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RS-100025", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2.5", "PAGE": 13, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M200-4RS-100030", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R3", "PAGE": 13, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4RL-100005", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 100, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-100010", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 100, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-100015", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 100, "RE": "R1.5", "PAGE": 14, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RL-100020", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 100, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4ESP-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ELP-100", "SECTION": "M200", "DC": 10.0, "FLUTES": 4, "APMX": 50.0, "LF": 100, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ES-110", "SECTION": "M200", "DC": 11.0, "FLUTES": 4, "APMX": 28.0, "LF": 75, "RE": "", "PAGE": 2, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-120005", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R0.5", "PAGE": 13, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-120010", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-120015", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1.5", "PAGE": 13, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RS-120020", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RS-120025", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2.5", "PAGE": 13, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M200-4RS-120030", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R3", "PAGE": 13, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4RL-120005", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-120010", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-120015", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R1.5", "PAGE": 14, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M200-4RL-120020", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RL-120025", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R2.5", "PAGE": 14, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M200-4RL-120030", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 100, "RE": "R3", "PAGE": 14, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4ESP-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 35.0, "LF": 75, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ELP-120", "SECTION": "M200", "DC": 12.0, "FLUTES": 4, "APMX": 50.0, "LF": 100, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 34.0, "LF": 100, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-140010", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 34.0, "LF": 100, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-140020", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 34.0, "LF": 100, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RL-140020", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4ESP-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-140", "SECTION": "M200", "DC": 14.0, "FLUTES": 4, "APMX": 60.0, "LF": 150, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-160005", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "R0.5", "PAGE": 13, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RS-160010", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-160020", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RS-160030", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "R3", "PAGE": 13, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4RS-160040", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "R4", "PAGE": 13, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-4RL-160005", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R0.5", "PAGE": 14, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M200-4RL-160010", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-160020", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RL-160030", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R3", "PAGE": 14, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4RL-160040", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 150, "RE": "R4", "PAGE": 14, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-4ESP-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4EL-160", "SECTION": "M200", "DC": 16.0, "FLUTES": 4, "APMX": 70.0, "LF": 150, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-180010", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-180020", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RS-180040", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "R4", "PAGE": 13, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-4ESP-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RL-180010", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 45.0, "LF": 150, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-180020", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 45.0, "LF": 150, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4EL-180", "SECTION": "M200", "DC": 18.0, "FLUTES": 4, "APMX": 70.0, "LF": 150, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4CS-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 11, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4RS-200010", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "R1", "PAGE": 13, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RS-200020", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "R2", "PAGE": 13, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4RS-200030", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "R3", "PAGE": 13, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M200-4RS-200040", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "R4", "PAGE": 13, "RE_VAL": 4.0}, {"PRODUCT_CODE": "M200-4RS-200050", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "R5", "PAGE": 13, "RE_VAL": 5.0}, {"PRODUCT_CODE": "M200-4RL-200010", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 150, "RE": "R1", "PAGE": 14, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M200-4RL-200020", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 150, "RE": "R2", "PAGE": 14, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M200-4EL-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 70.0, "LF": 150, "RE": "", "PAGE": 3, "RE_VAL": NaN}, {"PRODUCT_CODE": "M200-4ELP-200", "SECTION": "M200", "DC": 20.0, "FLUTES": 4, "APMX": 80.0, "LF": 150, "RE": "", "PAGE": 4, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-060", "SECTION": "M205", "DC": 6.0, "FLUTES": 6, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-080", "SECTION": "M205", "DC": 8.0, "FLUTES": 6, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-100", "SECTION": "M205", "DC": 10.0, "FLUTES": 6, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-120", "SECTION": "M205", "DC": 12.0, "FLUTES": 6, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-140", "SECTION": "M205", "DC": 14.0, "FLUTES": 6, "APMX": 34.0, "LF": 100, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-160", "SECTION": "M205", "DC": 16.0, "FLUTES": 6, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-180", "SECTION": "M205", "DC": 18.0, "FLUTES": 6, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M205-6ES-200", "SECTION": "M205", "DC": 20.0, "FLUTES": 6, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 16, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-030", "SECTION": "M210", "DC": 3.0, "FLUTES": 4, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-040", "SECTION": "M210", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4RS-040002", "SECTION": "M210", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.2", "PAGE": 22, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M210-4RS-040005", "SECTION": "M210", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R0.5", "PAGE": 22, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M210-4RS-040010", "SECTION": "M210", "DC": 4.0, "FLUTES": 4, "APMX": 12.0, "LF": 50, "RE": "R1", "PAGE": 22, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M210-4CS-050", "SECTION": "M210", "DC": 5.0, "FLUTES": 4, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-060", "SECTION": "M210", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4RS-060002", "SECTION": "M210", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.2", "PAGE": 22, "RE_VAL": 0.2}, {"PRODUCT_CODE": "M210-4RS-060005", "SECTION": "M210", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R0.5", "PAGE": 22, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M210-4RS-060010", "SECTION": "M210", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "R1", "PAGE": 22, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M210-4CS-080", "SECTION": "M210", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4RS-080005", "SECTION": "M210", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R0.5", "PAGE": 22, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M210-4RS-080010", "SECTION": "M210", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1", "PAGE": 22, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M210-4RS-080015", "SECTION": "M210", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R1.5", "PAGE": 22, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M210-4RS-080020", "SECTION": "M210", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "R2", "PAGE": 22, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M210-4CS-100", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4RS-100005", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R0.5", "PAGE": 22, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M210-4RS-100010", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1", "PAGE": 22, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M210-4RS-100015", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R1.5", "PAGE": 22, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M210-4RS-100020", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2", "PAGE": 22, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M210-4RS-100025", "SECTION": "M210", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "R2.5", "PAGE": 22, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M210-4CS-120", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4RS-120005", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R0.5", "PAGE": 22, "RE_VAL": 0.5}, {"PRODUCT_CODE": "M210-4RS-120010", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1", "PAGE": 22, "RE_VAL": 1.0}, {"PRODUCT_CODE": "M210-4RS-120015", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R1.5", "PAGE": 22, "RE_VAL": 1.5}, {"PRODUCT_CODE": "M210-4RS-120020", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2", "PAGE": 22, "RE_VAL": 2.0}, {"PRODUCT_CODE": "M210-4RS-120025", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R2.5", "PAGE": 22, "RE_VAL": 2.5}, {"PRODUCT_CODE": "M210-4RS-120030", "SECTION": "M210", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "R3", "PAGE": 22, "RE_VAL": 3.0}, {"PRODUCT_CODE": "M210-4CS-140", "SECTION": "M210", "DC": 14.0, "FLUTES": 4, "APMX": 34.0, "LF": 100, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-160", "SECTION": "M210", "DC": 16.0, "FLUTES": 4, "APMX": 36.0, "LF": 100, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-180", "SECTION": "M210", "DC": 18.0, "FLUTES": 4, "APMX": 40.0, "LF": 100, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M210-4CS-200", "SECTION": "M210", "DC": 20.0, "FLUTES": 4, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 20, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-4PS-060", "SECTION": "M216", "DC": 6.0, "FLUTES": 4, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-4PS-080", "SECTION": "M216", "DC": 8.0, "FLUTES": 4, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-4PS-100", "SECTION": "M216", "DC": 10.0, "FLUTES": 4, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-4PS-120", "SECTION": "M216", "DC": 12.0, "FLUTES": 4, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-5PS-160", "SECTION": "M216", "DC": 16.0, "FLUTES": 5, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M216-6PS-200", "SECTION": "M216", "DC": 20.0, "FLUTES": 6, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 23, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-030", "SECTION": "M245", "DC": 3.0, "FLUTES": 2, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-040", "SECTION": "M245", "DC": 4.0, "FLUTES": 2, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-050", "SECTION": "M245", "DC": 5.0, "FLUTES": 2, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-060", "SECTION": "M245", "DC": 6.0, "FLUTES": 2, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-080", "SECTION": "M245", "DC": 8.0, "FLUTES": 2, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-100", "SECTION": "M245", "DC": 10.0, "FLUTES": 2, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-120", "SECTION": "M245", "DC": 12.0, "FLUTES": 2, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-160", "SECTION": "M245", "DC": 16.0, "FLUTES": 2, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-2ES-200", "SECTION": "M245", "DC": 20.0, "FLUTES": 2, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 17, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-010", "SECTION": "M245", "DC": 1.0, "FLUTES": 3, "APMX": 3.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-015", "SECTION": "M245", "DC": 1.5, "FLUTES": 3, "APMX": 4.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-020", "SECTION": "M245", "DC": 2.0, "FLUTES": 3, "APMX": 6.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-025", "SECTION": "M245", "DC": 2.5, "FLUTES": 3, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-030", "SECTION": "M245", "DC": 3.0, "FLUTES": 3, "APMX": 8.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-040", "SECTION": "M245", "DC": 4.0, "FLUTES": 3, "APMX": 12.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-040", "SECTION": "M245", "DC": 4.0, "FLUTES": 3, "APMX": 16.0, "LF": 60, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-050", "SECTION": "M245", "DC": 5.0, "FLUTES": 3, "APMX": 13.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-060", "SECTION": "M245", "DC": 6.0, "FLUTES": 3, "APMX": 16.0, "LF": 50, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-060", "SECTION": "M245", "DC": 6.0, "FLUTES": 3, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-080", "SECTION": "M245", "DC": 8.0, "FLUTES": 3, "APMX": 20.0, "LF": 60, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-080", "SECTION": "M245", "DC": 8.0, "FLUTES": 3, "APMX": 32.0, "LF": 75, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-100", "SECTION": "M245", "DC": 10.0, "FLUTES": 3, "APMX": 25.0, "LF": 75, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-100", "SECTION": "M245", "DC": 10.0, "FLUTES": 3, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-120", "SECTION": "M245", "DC": 12.0, "FLUTES": 3, "APMX": 30.0, "LF": 75, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-120", "SECTION": "M245", "DC": 12.0, "FLUTES": 3, "APMX": 50.0, "LF": 100, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-160", "SECTION": "M245", "DC": 16.0, "FLUTES": 3, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-160", "SECTION": "M245", "DC": 16.0, "FLUTES": 3, "APMX": 60.0, "LF": 150, "RE": "", "PAGE": 19, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-180", "SECTION": "M245", "DC": 18.0, "FLUTES": 3, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3ES-200", "SECTION": "M245", "DC": 20.0, "FLUTES": 3, "APMX": 45.0, "LF": 100, "RE": "", "PAGE": 18, "RE_VAL": NaN}, {"PRODUCT_CODE": "M245-3EL-200", "SECTION": "M245", "DC": 20.0, "FLUTES": 3, "APMX": 70.0, "LF": 150, "RE": "", "PAGE": 19, "RE_VAL": NaN}];
+
+
+    // Helpers
+    const $ = (id) => document.getElementById(id);
+
+    function showToast(msg){
+      const t = $("toast");
+      t.textContent = msg || "복사되었습니다.";
+      t.classList.add("show");
+      setTimeout(()=>t.classList.remove("show"), 1200);
+    }
+
+    function normalizeREToNumber(re){
+      if (re == null) return null;
+      if (typeof re === "number" && Number.isFinite(re)) return re;
+      const s = String(re).trim().toUpperCase();
+      if (s.startsWith("R")){
+        const v = Number(s.slice(1));
+        return Number.isFinite(v) ? v : null;
+      }
+      const v = Number(s);
+      return Number.isFinite(v) ? v : null;
+    }
+
+    function renderEmpty(msg){
+      $("tbody").innerHTML = `<tr><td colspan="12" style="color:var(--muted);padding:14px 8px;">${msg}</td></tr>`;
+      $("resultInfo").textContent = "결과: 0";
+    }
+
+    function renderRows(rows, q){
+      const tb = $("tbody");
+      if (!rows.length){ renderEmpty("일치 데이터가 없습니다."); return; }
+
+      tb.innerHTML = rows.map(item => {
+        const apDiff = (q.apmx != null) ? (Number(item.APMX) - Number(q.apmx)) : "";
+        const lfDiff = (q.lf != null) ? (Number(item.LF) - Number(q.lf)) : "";
+        const reV = normalizeREToNumber(item.RE_VAL ?? item.RE);
+        const reDiff = (q.re != null && reV != null) ? (reV - Number(q.re)) : "";
+
+        const reText = (item.RE != null && String(item.RE).toUpperCase().startsWith("R"))
+          ? String(item.RE).toUpperCase()
+          : (reV != null ? `R${reV}` : "");
+
+        return `
+          <tr data-code="${String(item.PRODUCT_CODE)}">
+            <td class="code">${String(item.PRODUCT_CODE)}</td>
+            <td>${String(item.SECTION ?? "")}</td>
+            <td>${String(item.DC ?? "")}</td>
+            <td>${String(item.FLUTES ?? "")}</td>
+            <td class="tooltype">${((typeof TOOLTYPE_LABEL!=="undefined" && TOOLTYPE_LABEL[(parseProductCode(item.PRODUCT_CODE||"").toolType||"")]) ? TOOLTYPE_LABEL[(parseProductCode(item.PRODUCT_CODE||"").toolType||"")] : "")}</td>
+            <td>${String(item.APMX ?? "")}</td>
+            <td>${String(item.LF ?? "")}</td>
+            <td>${reText}</td>
+            <td>${(GRADE_DESC[String(item.SECTION||"").trim()] || "")}</td>
+            <td>${apDiff}</td>
+            <td>${lfDiff}</td>
+            <td>${reDiff}</td>
+          </tr>
+        `;
+      }).join("");
+
+      $("resultInfo").textContent = `결과: ${rows.length} (최대 20개 표시)`;
+
+      // Row click -> copy product code
+      tb.querySelectorAll("tr").forEach(tr => {
+        tr.addEventListener("click", async (evt) => {
+          const code = tr.getAttribute("data-code") || "";
+          if (!code) return;
+
+          // Find the underlying item for quote line (Shift-click)
+          const item = rows.find(r => String(r.PRODUCT_CODE) === code) || null;
+          const textToCopy = (evt && evt.shiftKey && item) ? buildQuoteLine(item) : code;
+
+          try{
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(textToCopy);
+              showToast((evt && evt.shiftKey) ? `복사됨(견적문장): ${code}` : `제품코드 복사: ${code}`);
+            } else {
+              const ta = document.createElement("textarea");
+              ta.value = textToCopy;
+              ta.style.position = "fixed";
+              ta.style.left = "-9999px";
+              document.body.appendChild(ta);
+              ta.focus();
+              ta.select();
+              document.execCommand("copy");
+              document.body.removeChild(ta);
+              showToast((evt && evt.shiftKey) ? `복사됨(견적문장): ${code}` : `제품코드 복사: ${code}`);
+            }
+          } catch(e){
+            showToast("복사 실패: 브라우저 권한을 확인해주세요.");
+          }
+
+          // Highlight references based on code
+          highlightFromProductCode(code);
+        
+          // v11: 선택한 규격 요약 표시
+          try{
+            const box = document.getElementById("selectedSummary");
+            if (box && item){
+              const reText = (item.RE != null && String(item.RE).toUpperCase().startsWith("R"))
+                ? String(item.RE).toUpperCase()
+                : (normalizeREToNumber(item.RE_VAL ?? item.RE) != null ? "R"+normalizeREToNumber(item.RE_VAL ?? item.RE) : "");
+              const toolType = (TOOLTYPE_LABEL[(parseProductCode(item.PRODUCT_CODE||"").toolType||"")] || "");
+              box.innerHTML = `<b>선택:</b> ${item.PRODUCT_CODE} &nbsp;|&nbsp; <b>재종</b> ${item.SECTION} &nbsp;|&nbsp; <b>가공경</b> Ø${item.DC} &nbsp;|&nbsp; <b>날수</b> ${item.FLUTES} &nbsp;|&nbsp; <b>공구형상</b> ${toolType} &nbsp;|&nbsp; <b>날장</b> ${item.APMX} &nbsp;|&nbsp; <b>전장</b> ${item.LF} &nbsp;|&nbsp; <b>노즈알</b> ${reText} &nbsp;|&nbsp; <b>재종설명</b> ${GRADE_DESC[String(item.SECTION||"").trim()] || ""}`;
+              box.style.display = "block";
+            }
+          }catch(e){}
+});});
+    }
+
+    function parseQuery(raw){
+      const txt = (raw || "")
+        .replace(/×/g, "*")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      // 재종(M###) 추출
+      const m = txt.match(/\bM\d{3}\b/i);
+      const section = m ? m[0].toUpperCase() : "";
+
+      // 노즈알(R#) 명시 입력 추출
+      const rMatch = txt.match(/\bR\s*([0-9]+(?:\.[0-9]+)?)\b/i);
+      const reExplicit = rMatch ? Number(rMatch[1]) : null;
+
+      // 전장 명시(전장 75, OAL 75 등) - 숫자 추출로 커버되지만 우선권 부여용
+      const lfWord = txt.match(/전장\s*([0-9]+(?:\.[0-9]+)?)/i);
+      const lfExplicit = lfWord ? Number(lfWord[1]) : null;
+
+      // 날장 명시(날장 40)
+      const apWord = txt.match(/날장\s*([0-9]+(?:\.[0-9]+)?)/i);
+      const apExplicit = apWord ? Number(apWord[1]) : null;
+
+      // 날수 명시(4날)
+      const flWord = txt.match(/([0-9]+)\s*날/i);
+      const flExplicit = flWord ? Number(flWord[1]) : null;
+
+      // 가공경 명시(10파이, Ø10, φ10)
+      const dcWord = txt.match(/([0-9]+(?:\.[0-9]+)?)\s*(?:파이|Ø|φ)/i);
+      const dcExplicit = dcWord ? Number(dcWord[1]) : null;
+
+      // 숫자 토큰만 추출
+      const nums = (txt.match(/[0-9]+(?:\.[0-9]+)?/g) || []).map(Number);
+
+      let dc = null, flutes = null, apmx = null, lf = null, re = reExplicit;
+
+      // 우선 명시값 사용
+      if (dcExplicit != null) dc = dcExplicit;
+      if (flExplicit != null) flutes = flExplicit;
+      if (apExplicit != null) apmx = apExplicit;
+      if (lfExplicit != null) lf = lfExplicit;
+
+      // 명시값이 부족하면 숫자 배열로 보완
+      // 기본: [DC, FLUTES, APMX, (LF or RE), (RE)]
+      if (nums.length >= 3){
+        if (dc == null) dc = nums[0];
+        if (flutes == null) flutes = nums[1];
+        if (apmx == null) apmx = nums[2];
+      }
+
+      // 4번째 숫자 센스 해석(전장 vs 노즈알)
+      if (nums.length === 4 && re === null && lf === null){
+        const v = nums[3];
+
+        const existsLF = DATA.some(d => Number(d.LF) === v);
+        const existsRE = DATA.some(d => {
+          const rv = normalizeREToNumber(d.RE_VAL ?? d.RE);
+          return rv != null && Number(rv) === v;
+        });
+
+        if (existsLF && !existsRE) lf = v;
+        else if (!existsLF && existsRE) re = v;
+        else {
+          // 휴리스틱
+          if (v >= 10) lf = v;
+          else re = v;
+        }
+      }
+
+      // 5개 이상: 4번째=전장, 5번째=노즈알 (가장 직관적인 규칙)
+      if (nums.length >= 5){
+        if (lf == null) lf = nums[3];
+        if (re == null) re = nums[4];
+      }
+
+      return { section, dc, flutes, apmx, lf, re };
+    }
+
+    function scoreLF(item, q, mode){
+      if (q.lf == null) return 0;
+      const diff = Number(item.LF) - Number(q.lf);
+      if (mode === "longer") return (diff >= 0) ? diff : 100000 + Math.abs(diff);
+      return Math.abs(diff);
+    }
+
+    function scoreRE(item, q, mode){
+      if (q.re == null) return 0;
+      const v = normalizeREToNumber(item.RE_VAL ?? item.RE);
+      if (v == null) return 0;
+      const diff = v - Number(q.re);
+      if (mode === "bigger") return (diff >= 0) ? diff : 100000 + Math.abs(diff);
+      return Math.abs(diff);
+    }
+
+    function search(){
+      const raw = $("q").value;
+      const secUI = $("section").value;
+      const lfMode = $("lfMode").value || "near";
+      const reMode = $("reMode").value || "near";
+
+      const q = parseQuery(raw);
+      const section = secUI || q.section;
+
+      if (q.dc == null || q.flutes == null || q.apmx == null){
+        renderEmpty("입력 예: 10 4 35 / 10 4 35 70 / 10 4 35 2 / 10 4 35 70 2 / 10*4F*35 / 10파이 4날 날장40 전장75 노즈알R2");
+        return;
+      }
+
+      let list = DATA.filter(d =>
+        Number(d.DC) === Number(q.dc) &&
+        Number(d.FLUTES) === Number(q.flutes) &&
+        (!section || String(d.SECTION) === String(section))
+      );
+
+      
+      // v12: 노즈알 미지정이면 "Corner radius(R)" 타입만 제외하고 Flat end(E) 중심으로 표시
+      // (데이터에 RE가 항상 존재하는 경우가 있어, RE값 기준 필터 대신 제품코드의 Tool Type으로 판단합니다.)
+      if (q.re == null) {
+        list = list.filter(d => {
+          const tt = (parseProductCode(d.PRODUCT_CODE || "").toolType || "").toUpperCase();
+          // 노즈알 제품 = Tool Type 'R' (Corner radius) 로 간주
+          return tt !== "R";
+        });
+        const hint = document.getElementById("reHint");
+        if (hint) hint.style.display = "inline-flex";
+      } else {
+        const hint = document.getElementById("reHint");
+        if (hint) hint.style.display = "none";
+      }
+if (!list.length){
+        renderEmpty(`일치 데이터가 없습니다. (가공경=${q.dc}, 날수=${q.flutes}${section ? ", 재종="+section : ""})`);
+        return;
+      }
+
+      // APMX 추천: 긴 날장 우선(요청 이상) + 부족하면 짧은 날장
+      const longer = list.filter(d => Number(d.APMX) >= Number(q.apmx))
+        .sort((a,b) => (Number(a.APMX)-Number(q.apmx)) - (Number(b.APMX)-Number(q.apmx)));
+      const shorter = list.filter(d => Number(d.APMX) < Number(q.apmx))
+        .sort((a,b) => (Number(q.apmx)-Number(a.APMX)) - (Number(q.apmx)-Number(b.APMX)));
+
+      let ranked = [...longer, ...shorter];
+
+      // 전장/노즈알 입력이 있으면 “센스 있게” 위로 올리기(정렬 가산)
+      ranked.sort((a,b) => {
+        const s1 = scoreLF(a, q, lfMode) - scoreLF(b, q, lfMode);
+        if (s1 !== 0) return s1;
+        const s2 = scoreRE(a, q, reMode) - scoreRE(b, q, reMode);
+        if (s2 !== 0) return s2;
+        return 0;
+      });
+
+      // TOP 20
+      renderRows(ranked.slice(0,20), q);
+    }
+
+    function resetUI(){
+      $("q").value = "";
+      $("section").value = "";
+      $("lfMode").value = "near";
+      $("reMode").value = "near";
+      renderEmpty("검색을 입력하세요.");
+        initReferenceTooltips();
+    }
+
+    function populateSectionOptions(){
+      // Use GRADE_DESC + actual sections found
+      const sections = Array.from(new Set(DATA.map(d => String(d.SECTION || "").trim()).filter(Boolean))).sort();
+      const sel = $("section");
+      sel.innerHTML = `<option value="">전체</option>` + sections.map(s => {
+        const desc = GRADE_DESC[s] ? ` (${GRADE_DESC[s]})` : "";
+        return `<option value="${s}">${s}${desc}</option>`;
+      }).join("");
+    }
+
+    async function loadData(){
+      // v27-mobile: content://, file:// 환경에서도 fetch 없이 즉시 내장 데이터 사용
+      try{
+        const arr = (typeof EMBEDDED_DATA !== "undefined" && Array.isArray(EMBEDDED_DATA)) ? EMBEDDED_DATA : [];
+        window.__DATASET = arr;
+        const el = document.getElementById("dataStatus");
+        if (el){
+          el.textContent = `내장 데이터 모드 (${arr.length.toLocaleString()}건)`;
+          el.style.color = "rgba(255,200,120,.95)";
+        }
+        return Promise.resolve(arr.map(x => ({
+          PRODUCT_CODE: x.PRODUCT_CODE ?? x.product_code ?? x.CODE ?? x.code,
+          SECTION: x.SECTION ?? x.section,
+          DC: Number(x.DC ?? x.dc ?? 0),
+          FLUTES: Number(x.FLUTES ?? x.flutes ?? 0),
+          APMX: Number(x.APMX ?? x.apmx ?? 0),
+          LF: Number(x.LF ?? x.lf ?? 0),
+          RE: x.RE ?? x.re ?? "",
+          TOOL_TYPE: x.TOOL_TYPE ?? x.tool_type ?? "",
+          GRADE_DESC: x.GRADE_DESC ?? x.grade_desc ?? ""
+        })));
+      }catch(e){
+        return Promise.resolve([]);
+      }
+    }
+
+    
+    // --- Code help maps (툴팁/하이라이트용) - 원본 문구 유지
+    const CODE_HELP = {
+      toolType: {
+        "E":"Flat end","B":"Ball nose","R":"Corner radius","C":"Chamfer","P":"Wavy edge","W":"Form milling","T":"Tapered","H":"High-feed"
+      },
+      lengthStd: {
+        "S":"Standard","L":"Long","X":"Extra-long","A":"Ultra-long","SN":"Shortened flute","SP":"Extended flute","LP":"Long & extended flute"
+      },
+      structure: {
+        "N":"Straight neck","C":"Tapered neck","W":"Side lock shank","P":"Special shank dia.","Default":"Standard necking"
+      },
+      series: {
+        "00":"Universal milling (HRC45)",
+        "10":"High-efficiency universal milling",
+        "20":"High-performance milling",
+        "30":"Steel-specific milling",
+        "40":"Aluminum milling",
+        "50":"SS. milling",
+        "60":"Hard-to-cut materials milling",
+        "70":"Harden steel milling",
+        "80&90":"Others"
+      }
+    };
+
+    // v13: tool type label map (renderRows에서 사용)
+    const TOOLTYPE_LABEL = (CODE_HELP && CODE_HELP.toolType) ? CODE_HELP.toolType : {
+      "E":"Flat end","B":"Ball nose","R":"Corner radius","C":"Chamfer","P":"Wavy edge","W":"Form milling","T":"Tapered","H":"High-feed"
+    };
+
+    function clearHighlights(){
+      document.querySelectorAll(".refTable tr.hl").forEach(el => el.classList.remove("hl"));
+    }
+    function highlightRef(ref, code){
+      if (!ref || !code) return;
+      const rows = document.querySelectorAll(`.refTable tr[data-ref="${ref}"][data-code]`);
+      rows.forEach(r => {
+        const c = (r.getAttribute("data-code") || "").toUpperCase();
+        if (c === String(code).toUpperCase()) r.classList.add("hl");
+      });
+    }
+
+    // Parse product code to extract: flutes, tool type, length standard, structure type guess
+    // Example: M200-4RS-100020W  -> section M200, second token 4RS => flutes 4, toolType R, lengthStd S, structure W (last char)
+    // Example: M200-4ES-060002   -> 4ES => toolType E, lengthStd S
+    function parseProductCode(code){
+      const s = String(code || "").trim().toUpperCase();
+      const parts = s.split("-");
+      const section = parts[0] || "";
+      const mid = parts[1] || ""; // e.g., 4RS
+      const tail = parts[2] || ""; // e.g., 100020W (sometimes includes structure type)
+      const flutes = mid.match(/^\d+/)?.[0] || "";
+      const letters = mid.replace(/^\d+/, ""); // RS, ES, etc.
+
+      // Tool Type is the first letter of letters (E/B/R/C/P/W/T/H)
+      const toolType = letters ? letters[0] : "";
+
+      // Length Standard: prefer known codes in remaining letters (SN, SP, LP first), else last letter if matches S/L/X/A
+      let lengthStd = "";
+      const rem = letters.slice(1);
+      const rem2 = letters; // sometimes includes length std as second letter
+      const candidates = ["SN","SP","LP","S","L","X","A"];
+      for (const c of candidates){
+        if (rem2.includes(c)) { lengthStd = c; break; }
+      }
+      if (!lengthStd && rem) {
+        const last = rem.slice(-1);
+        if (["S","L","X","A"].includes(last)) lengthStd = last;
+      }
+
+      // Structure type: last char of tail if in N/C/W/P
+      let structure = "";
+      const lastTail = tail.slice(-1);
+      if (["N","C","W","P"].includes(lastTail)) structure = lastTail;
+      else structure = "Default";
+
+      return { section, flutes, toolType, lengthStd, structure };
+    }
+
+    // Tooltip behavior on reference rows
+    function initReferenceTooltips(){
+      const tip = $("tooltip");
+      function show(e, text){
+        if (!text) return;
+        tip.textContent = text;
+        tip.style.left = (e.clientX + 12) + "px";
+        tip.style.top = (e.clientY + 12) + "px";
+        tip.classList.add("show");
+      }
+      function hide(){ tip.classList.remove("show"); }
+
+      document.querySelectorAll(".refTable tr[data-ref][data-code]").forEach(tr => {
+        const ref = tr.getAttribute("data-ref");
+        const code = tr.getAttribute("data-code");
+        const text = CODE_HELP?.[ref]?.[code] || tr.querySelector("td")?.textContent?.trim();
+        tr.addEventListener("mousemove", (e) => show(e, text));
+        tr.addEventListener("mouseleave", hide);
+      });
+    }
+
+    function highlightFromProductCode(code){
+      clearHighlights();
+      const info = parseProductCode(code);
+      if (info.toolType) highlightRef("toolType", info.toolType);
+      if (info.lengthStd) highlightRef("lengthStd", info.lengthStd);
+      if (info.structure) highlightRef("structure", info.structure);
+
+      // Scroll reference panel a bit to where highlights likely are
+      const refPanel = document.getElementById("ref-5") || document.querySelector(".sticky");
+      if (refPanel) refPanel.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    }
+
+    function buildQuoteLine(item){
+      const reText = (item.RE != null && String(item.RE).toUpperCase().startsWith("R"))
+        ? String(item.RE).toUpperCase()
+        : (normalizeREToNumber(item.RE_VAL ?? item.RE) != null ? "R"+normalizeREToNumber(item.RE_VAL ?? item.RE) : "");
+
+      return `${item.PRODUCT_CODE} / 재종 ${item.SECTION} / Ø${item.DC} / ${item.FLUTES}날 / 날장 ${item.APMX} / 전장 ${item.LF} / 노즈알 ${reText}`;
+    }
+
+
+    // Wire events
+    $("btnSearch").addEventListener("click", search);
+    $("btnReset").addEventListener("click", resetUI);
+    $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
+
+    // Init
+    loadData();
+  
+    // v26-single-mobile: file:// / content:// 실행 시에도 데이터는 내장(EMBEDDED_DATA)으로 동작합니다.
+    try{
+      const proto = (location && location.protocol) ? location.protocol : "";
+      if (proto === "file:" || proto === "content:" ){
+        const el = document.getElementById("dataStatus");
+        if (el) el.textContent = "내장 데이터 모드";
+      }
+    }catch(e){}
+
+</script>
+</body>
+</html>
